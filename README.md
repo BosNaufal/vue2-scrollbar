@@ -45,9 +45,9 @@ Its style is very customizable. You can put any CSS over it. And You can add cus
 
 ## Import Module
 ```javascript
-import Autocomplete from 'vue2-scrollbar'
+import ScrollBar from 'vue2-scrollbar'
 // Or
-var Autocomplete = require('vue2-scrollbar');
+var ScrollBar = require('vue2-scrollbar');
 ```
 
 
