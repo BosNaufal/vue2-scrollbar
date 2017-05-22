@@ -81,16 +81,24 @@
         scrollWrapperWidth: null,
         vMovement: 0,
         hMovement: 0,
+        cachedvMovement: 0,
         dragging: false,
         start: { y: 0, x: 0}
       }
     },
 
+    computed: {
+     /**
+      * If vMovement and the cached one are the same, then parent scrolling is allowed.
+      * @returns {boolean}
+      */
+      allowBodyScrollVertical() {
+          return this.vMovement === this.cachedvMovement;
+      }
+    },
+
     methods: {
-
       scroll(e){
-        e.preventDefault()
-
         // Make sure the content height is not changed
         this.calculateSize(() => {
           // Set the wheel step
@@ -119,36 +127,41 @@
           if(shifted && canScrollX) this.normalizeHorizontal(nextX)
         })
 
+        // prevent Default only if scrolled content is not at the top/bottom
+        if (!this.allowBodyScrollVertical) {
+          e.preventDefault()
+        }
+
       },
 
       // DRAG EVENT JUST FOR TOUCH DEVICE~
       startDrag(e){
-        e.preventDefault()
-        e.stopPropagation()
-
-        e = e.changedTouches ? e.changedTouches[0] : e
+        let evt = e.changedTouches ? e.changedTouches[0] : e
 
         // Make sure the content height is not changed
         this.calculateSize(() => {
           // Prepare to drag
           this.dragging = true,
-          this.start = { y: e.pageY, x: e.pageX }
+          this.start = { y: evt.pageY, x: evt.pageX }
         })
 
+        // It's important to make this after size calculation
+        if (!this.allowBodyScrollVertical) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
       },
 
       onDrag(e){
         if(this.dragging){
-
-          e.preventDefault()
-          e = e.changedTouches ? e.changedTouches[0] : e
+          let evt = e.changedTouches ? e.changedTouches[0] : e
 
           // Invers the Movement
-          let yMovement = this.start.y - e.clientY
-          let xMovement = this.start.x - e.clientX
+          let yMovement = this.start.y - evt.clientY
+          let xMovement = this.start.x - evt.clientX
 
           // Update the last e.client
-          this.start = { y: e.clientY, x: e.clientX }
+          this.start = { y: evt.clientY, x: evt.clientX }
 
           // The next Vertical Value will be
           let nextY = this.top + yMovement
@@ -157,6 +170,9 @@
           this.normalizeVertical(nextY)
           this.normalizeHorizontal(nextX)
 
+          if (!this.allowBodyScrollVertical) {
+              e.preventDefault()
+          }
         }
       },
 
@@ -184,8 +200,9 @@
         // Max Scroll Up
         else if(next < 0) next = 0
 
-        // Update the Vertical Value
+        // Cache previous Vertical movement value & Update the Vertical Value
         this.top = next,
+        this.cachedvMovement = this.vMovement
         this.vMovement = next / elementSize.scrollAreaHeight * 100
       },
 
