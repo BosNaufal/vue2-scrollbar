@@ -33,12 +33,6 @@
 
   export default {
     components: { VueScrollbar },
-
-    methods: {
-      handleMaxScroll(direction) {
-        console.log(direction);
-      }
-    },
   };
 
 </script>
