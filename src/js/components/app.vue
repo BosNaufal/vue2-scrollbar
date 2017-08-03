@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <vue-scrollbar classes="my-scrollbar" ref="Scrollbar">
+    <vue-scrollbar classes="my-scrollbar" ref="Scrollbar" :onMaxScroll="handleMaxScroll">
       <div class="scroll-me">
         <div class="kolom"></div>
         <div class="kolom"></div>
@@ -33,6 +33,12 @@
 
   export default {
     components: { VueScrollbar },
+
+    methods: {
+      handleMaxScroll(direction) {
+        console.log(direction);
+      }
+    },
   };
 
 </script>

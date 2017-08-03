@@ -139,6 +139,16 @@ this.styling = {
 The wheel step in pixel. The default is 53 pixel per wheel.
 
 
+##### onMaxScroll (type: Function, return: Object)
+Applied when the scrollbar in the max vertical or max horizontal scrolling. Make a possibility to add some *load more* feature or infinite scroll
+```javascript
+// Examples
+someMethod(direction) {
+  console.log(direction);
+}
+```
+
+
 
 ## Methods
 You can do some methods by accessing the component via javascript.

@@ -62,7 +62,8 @@
       speed: {
         type: Number,
         default: 53
-      }
+      },
+      onMaxScroll: Function,
     },
 
     components: {
@@ -173,37 +174,57 @@
       },
 
       normalizeVertical(next){
-        let elementSize = this.getSize()
+        const elementSize = this.getSize()
 
         // Vertical Scrolling
-        let lowerEnd = elementSize.scrollAreaHeight - elementSize.scrollWrapperHeight
+        const lowerEnd = elementSize.scrollAreaHeight - elementSize.scrollWrapperHeight
 
         // Max Scroll Down
-        if(next > lowerEnd) next = lowerEnd
+        const maxBottom = next > lowerEnd
+        if(maxBottom) next = lowerEnd
 
         // Max Scroll Up
-        else if(next < 0) next = 0
+        const maxTop = next < 0
+        if(maxTop) next = 0
 
-        // Update the Vertical Value
-        this.top = next,
-        this.vMovement = next / elementSize.scrollAreaHeight * 100
+
+        // Update the Vertical Value if it's needed
+        const shouldScroll = this.top !== next
+        if (shouldScroll) {
+          this.top = next,
+          this.vMovement = next / elementSize.scrollAreaHeight * 100
+
+          if (this.onMaxScroll && (maxTop || maxBottom)) {
+            this.onMaxScroll({ top: maxTop, bottom: maxBottom, right: false, left: false })
+          }
+        }
+
       },
 
       normalizeHorizontal(next){
-        let elementSize = this.getSize()
+        const elementSize = this.getSize()
 
         // Horizontal Scrolling
-        let rightEnd = elementSize.scrollAreaWidth - this.scrollWrapperWidth
+        const rightEnd = elementSize.scrollAreaWidth - this.scrollWrapperWidth
 
         // Max Scroll Right
-        if(next > rightEnd) next = rightEnd;
+        const maxRight = next > rightEnd
+        if(maxRight) next = rightEnd;
 
-        // Max Scroll Right
-        else if(next < 0) next = 0
+        // Max Scroll Left
+        const maxLeft = next < 0
+        if(next < 0) next = 0
 
         // Update the Horizontal Value
-        this.left = next,
-        this.hMovement = next / elementSize.scrollAreaWidth * 100
+        const shouldScroll = this.left !== next
+        if (shouldScroll) {
+          this.left = next,
+          this.hMovement = next / elementSize.scrollAreaWidth * 100
+
+          if (this.onMaxScroll && (maxRight || maxLeft)) {
+            this.onMaxScroll({ right: maxRight, left: maxLeft, top: false, bottom: false })
+          }
+        }
       },
 
       handleChangePosition(movement, orientation){
