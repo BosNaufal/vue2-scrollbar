@@ -169,7 +169,7 @@
       },
 
       scrollToX(x) {
-        this.normalizeVertical(x)
+        this.normalizeHorizontal(x)
       },
 
       normalizeVertical(next){
