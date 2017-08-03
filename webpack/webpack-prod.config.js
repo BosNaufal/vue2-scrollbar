@@ -1,6 +1,5 @@
 
 var webpack = require('webpack');
-var combineLoaders = require('webpack-combine-loaders');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 require('es6-promise').polyfill();
 
@@ -19,42 +18,20 @@ module.exports = {
 
 
   module: {
-
     loaders: [
       {
         test: /\.vue$/,
-        loader: 'vue'
+        loader: 'vue-loader'
       },
-
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
-        loader: 'babel',
-        query: {
-          presets: ["es2015"],
-          plugins: ["transform-object-rest-spread","transform-vue-jsx"]
-        }
+        loader: 'babel-loader',
       },
-
-      {
-        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-        loader: 'url',
-      },
-
-      {
-        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-        loader: 'url',
-      },
-
       {
         test: /\.css$/,
-        loaders: ['style','css']
-      },
-
-      {
-        test: /\.json$/,
-        loader: 'json'
-      },
+        use: ['style-loader','css-loader']
+      }
     ]
   },
 
