@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <vue-scrollbar classes="my-scrollbar" ref="Scrollbar" :onMaxScroll="handleMaxScroll">
+    <vue-scrollbar classes="my-scrollbar" ref="Scrollbar">
       <div class="scroll-me">
         <div class="kolom"></div>
         <div class="kolom"></div>
