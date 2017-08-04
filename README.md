@@ -56,7 +56,7 @@ var ScrollBar = require('vue2-scrollbar');
 
 <template>
   <div>
-    <vue-scrollbar custom-class="my-scrollbar" ref="Scrollbar">
+    <vue-scrollbar classes="my-scrollbar" ref="Scrollbar">
       <div class="scroll-me">
         <div class="kolom"></div>
         <div class="kolom"></div>
@@ -143,9 +143,12 @@ The wheel step in pixel. The default is 53 pixel per wheel.
 Applied when the scrollbar in the max vertical or max horizontal scrolling. Make a possibility to add some *load more* feature or infinite scroll
 ```javascript
 // Examples
-someMethod(direction) {
+handleMaxScroll(direction) {
   console.log(direction);
 }
+```
+```html
+<vue-scrollbar :onMaxScroll="handleMaxScroll"></vue-scrollbar>
 ```
 
 
