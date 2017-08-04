@@ -83,15 +83,13 @@
         vMovement: 0,
         hMovement: 0,
         dragging: false,
-        start: { y: 0, x: 0}
+        start: { y: 0, x: 0},
+        allowBodyScroll: false,
       }
     },
 
     methods: {
-
       scroll(e){
-        e.preventDefault()
-
         // Make sure the content height is not changed
         this.calculateSize(() => {
           // Set the wheel step
@@ -120,36 +118,45 @@
           if(shifted && canScrollX) this.normalizeHorizontal(nextX)
         })
 
+        // prevent Default only if scrolled content is not at the top/bottom
+        if (!this.allowBodyScroll) {
+          e.preventDefault()
+        }
+
       },
 
       // DRAG EVENT JUST FOR TOUCH DEVICE~
       startDrag(e){
-        // e.preventDefault()
-        // e.stopPropagation()
+        this.touchEvent = e
 
-        e = e.changedTouches ? e.changedTouches[0] : e
+        const evt = e.changedTouches ? e.changedTouches[0] : e
 
         // Make sure the content height is not changed
         this.calculateSize(() => {
           // Prepare to drag
           this.dragging = true,
-          this.start = { y: e.pageY, x: e.pageX }
+          this.start = { y: evt.pageY, x: evt.pageX }
         })
-
       },
 
       onDrag(e){
         if(this.dragging){
-
           e.preventDefault()
-          e = e.changedTouches ? e.changedTouches[0] : e
+
+          // Prevent Click Event When it dragging
+          if (this.touchEvent) {
+            this.touchEvent.preventDefault()
+            this.touchEvent.stopPropagation()
+          }
+
+          let evt = e.changedTouches ? e.changedTouches[0] : e
 
           // Invers the Movement
-          let yMovement = this.start.y - e.clientY
-          let xMovement = this.start.x - e.clientX
+          let yMovement = this.start.y - evt.clientY
+          let xMovement = this.start.x - evt.clientX
 
           // Update the last e.client
-          this.start = { y: e.clientY, x: e.clientX }
+          this.start = { y: evt.clientY, x: evt.clientX }
 
           // The next Vertical Value will be
           let nextY = this.top + yMovement
@@ -163,6 +170,7 @@
 
       stopDrag(e){
         this.dragging = false
+        this.touchEvent = false
       },
 
       scrollToY(y) {
@@ -190,6 +198,7 @@
 
         // Update the Vertical Value if it's needed
         const shouldScroll = this.top !== next
+        this.allowBodyScroll = !shouldScroll
         if (shouldScroll) {
           this.top = next,
           this.vMovement = next / elementSize.scrollAreaHeight * 100
@@ -198,7 +207,6 @@
             this.onMaxScroll({ top: maxTop, bottom: maxBottom, right: false, left: false })
           }
         }
-
       },
 
       normalizeHorizontal(next){
@@ -217,6 +225,7 @@
 
         // Update the Horizontal Value
         const shouldScroll = this.left !== next
+        this.allowBodyScroll = !shouldScroll
         if (shouldScroll) {
           this.left = next,
           this.hMovement = next / elementSize.scrollAreaWidth * 100

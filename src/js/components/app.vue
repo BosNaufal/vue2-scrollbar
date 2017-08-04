@@ -3,7 +3,9 @@
   <div>
     <vue-scrollbar classes="my-scrollbar" ref="Scrollbar">
       <div class="scroll-me">
-        <div class="kolom"></div>
+        <a href="https://google.com">
+          <div class="kolom">Go To Google</div>
+        </a>
         <div class="kolom"></div>
         <div class="kolom"></div>
         <div class="kolom"></div>
