@@ -121,6 +121,7 @@
         // prevent Default only if scrolled content is not at the top/bottom
         if (!this.allowBodyScroll) {
           e.preventDefault()
+          e.stopPropagation()
         }
 
       },
@@ -142,6 +143,7 @@
       onDrag(e){
         if(this.dragging){
           e.preventDefault()
+          e.stopPropagation()
 
           // Prevent Click Event When it dragging
           if (this.touchEvent) {
