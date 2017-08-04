@@ -56,7 +56,7 @@ var ScrollBar = require('vue2-scrollbar');
 
 <template>
   <div>
-    <vue-scrollbar custom-class="my-scrollbar" ref="Scrollbar">
+    <vue-scrollbar classes="my-scrollbar" ref="Scrollbar">
       <div class="scroll-me">
         <div class="kolom"></div>
         <div class="kolom"></div>
@@ -83,10 +83,10 @@ var ScrollBar = require('vue2-scrollbar');
 <script>
 
   import VueScrollbar from 'vue2-scrollbar';
-  require("vue2-scrollbar/style/vue2-scrollbar.css")
+  require("vue2-scrollbar/dist/style/vue2-scrollbar.css");
 
   // It's required to set min height of the scrollbar wrapper
-  require("./your/custom/style/app.css")
+  require("./your/custom/style/app.css");
 
   export default {
     components: { VueScrollbar },
