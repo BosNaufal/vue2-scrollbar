@@ -2,7 +2,7 @@
  * Copyright (c) 2016 Naufal Rabbani (http://github.com/BosNaufal),
  * ,Licensed Under MIT (http://opensource.org/licenses/MIT),
  * ,
- * ,Vue 2 Scrollbar @ Version 0.0.1,
+ * ,Vue 2 Scrollbar @ Version 0.0.2,
  * 
  */
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -707,6 +707,7 @@ exports.default = {
       // prevent Default only if scrolled content is not at the top/bottom
       if (!this.allowBodyScroll) {
         e.preventDefault();
+        e.stopPropagation();
       }
     },
 
@@ -728,6 +729,7 @@ exports.default = {
     onDrag: function onDrag(e) {
       if (this.dragging) {
         e.preventDefault();
+        e.stopPropagation();
 
         // Prevent Click Event When it dragging
         if (this.touchEvent) {

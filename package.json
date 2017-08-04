@@ -7,7 +7,8 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server --config ./webpack/webpack.config.js --inline --hot",
     "build": "cross-env NODE_ENV=production webpack --config ./webpack/webpack-prod.config.js -p",
     "build:prod": "cross-env NODE_ENV=production webpack --config ./webpack/webpack-bundle.config.js -p",
-    "build:dist": "cross-env NODE_ENV=development webpack --config ./webpack/webpack-bundle.config.js"
+    "build:dist": "cross-env NODE_ENV=development webpack --config ./webpack/webpack-bundle.config.js",
+    "bundle": "npm run build && npm run build:prod && npm run build:dist"
   },
   "repository": {
     "type": "git",
