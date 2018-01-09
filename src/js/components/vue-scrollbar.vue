@@ -64,6 +64,10 @@
         default: 53
       },
       onMaxScroll: Function,
+      propagateScroll: {
+        type: Boolean,
+        default: true
+      }
     },
 
     components: {
@@ -119,7 +123,7 @@
         })
 
         // prevent Default only if scrolled content is not at the top/bottom
-        if (!this.allowBodyScroll) {
+        if (!this.allowBodyScroll || !this.propagateScroll) {
           e.preventDefault()
           e.stopPropagation()
         }
