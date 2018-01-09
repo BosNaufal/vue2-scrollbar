@@ -151,6 +151,8 @@ handleMaxScroll(direction) {
 <vue-scrollbar :onMaxScroll="handleMaxScroll"></vue-scrollbar>
 ```
 
+##### propagateScroll (Boolean)
+Whether to propagate scroll event to body or not. Default is true.
 
 
 ## Methods
