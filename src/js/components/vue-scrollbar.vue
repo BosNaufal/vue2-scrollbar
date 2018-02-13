@@ -64,6 +64,7 @@
         default: 53
       },
       onMaxScroll: Function,
+      onScroll: Function,
     },
 
     components: {
@@ -205,6 +206,10 @@
           this.top = next,
           this.vMovement = next / elementSize.scrollAreaHeight * 100
 
+          if (this.onScroll) {
+            this.onScroll({ top: this.top, left: this.left })
+          }
+
           if (this.onMaxScroll && (maxTop || maxBottom)) {
             this.onMaxScroll({ top: maxTop, bottom: maxBottom, right: false, left: false })
           }
@@ -231,6 +236,10 @@
         if (shouldScroll) {
           this.left = next,
           this.hMovement = next / elementSize.scrollAreaWidth * 100
+
+          if (this.onScroll) {
+            this.onScroll({ top: this.top, left: this.left })
+          }
 
           if (this.onMaxScroll && (maxRight || maxLeft)) {
             this.onMaxScroll({ right: maxRight, left: maxLeft, top: false, bottom: false })
