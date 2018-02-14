@@ -139,6 +139,19 @@ this.styling = {
 The wheel step in pixel. The default is 53 pixel per wheel.
 
 
+##### onScroll (type: Function, return: Object)
+Applied when the scrollbar is scrolling. Allows you to react to any scroll events.
+```javascript
+// Examples
+handleScroll(position) {
+  console.log(position);
+}
+```
+```html
+<vue-scrollbar :onScroll="handleScroll"></vue-scrollbar>
+```
+
+
 ##### onMaxScroll (type: Function, return: Object)
 Applied when the scrollbar in the max vertical or max horizontal scrolling. Make a possibility to add some *load more* feature or infinite scroll
 ```javascript

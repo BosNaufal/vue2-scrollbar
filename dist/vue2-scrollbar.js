@@ -89,12 +89,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /* globals __VUE_SSR_CONTEXT__ */
 
-// this module is a runtime utility for cleaner component module output and will
-// be included in the final webpack user bundle
+// IMPORTANT: Do NOT use ES2015 features in this file.
+// This module is a runtime utility for cleaner component module output and will
+// be included in the final webpack user bundle.
 
 module.exports = function normalizeComponent (
   rawScriptExports,
   compiledTemplate,
+  functionalTemplate,
   injectStyles,
   scopeId,
   moduleIdentifier /* server only */
@@ -118,6 +120,12 @@ module.exports = function normalizeComponent (
   if (compiledTemplate) {
     options.render = compiledTemplate.render
     options.staticRenderFns = compiledTemplate.staticRenderFns
+    options._compiled = true
+  }
+
+  // functional template
+  if (functionalTemplate) {
+    options.functional = true
   }
 
   // scopedId
@@ -158,12 +166,16 @@ module.exports = function normalizeComponent (
     var existing = functional
       ? options.render
       : options.beforeCreate
+
     if (!functional) {
       // inject component registration as beforeCreate hook
       options.beforeCreate = existing
         ? [].concat(existing, hook)
         : [hook]
     } else {
+      // for template-only hot-reload because in that case the render fn doesn't
+      // go through the normalizer
+      options._injectStyles = hook
       // register for functioal component in vue file
       options.render = function renderWithStyleInjection (h, context) {
         hook.call(context)
@@ -182,57 +194,6 @@ module.exports = function normalizeComponent (
 
 /***/ }),
 /* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_7ec59f76_hasScoped_false_node_modules_vue_loader_lib_selector_type_template_index_0_vue_scrollbar_vue__ = __webpack_require__(9);
-var disposed = false
-var normalizeComponent = __webpack_require__(0)
-/* script */
-
-/* template */
-
-/* styles */
-var __vue_styles__ = null
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue___default.a,
-  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_7ec59f76_hasScoped_false_node_modules_vue_loader_lib_selector_type_template_index_0_vue_scrollbar_vue__["a" /* default */],
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "src/js/components/vue-scrollbar.vue"
-if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key.substr(0, 2) !== "__"})) {console.error("named exports are not supported in *.vue files.")}
-if (Component.options.functional) {console.error("[vue-loader] vue-scrollbar.vue: functional components are not supported with templates, they should use render functions.")}
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-7ec59f76", Component.options)
-  } else {
-    hotAPI.reload("data-v-7ec59f76", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-/* harmony default export */ __webpack_exports__["default"] = (Component.exports);
-
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -390,7 +351,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 3 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -564,7 +525,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -646,7 +607,8 @@ exports.default = {
       type: Number,
       default: 53
     },
-    onMaxScroll: Function
+    onMaxScroll: Function,
+    onScroll: Function
   },
 
   components: {
@@ -784,6 +746,10 @@ exports.default = {
       if (shouldScroll) {
         this.top = next, this.vMovement = next / elementSize.scrollAreaHeight * 100;
 
+        if (this.onScroll) {
+          this.onScroll({ top: this.top, left: this.left });
+        }
+
         if (this.onMaxScroll && (maxTop || maxBottom)) {
           this.onMaxScroll({ top: maxTop, bottom: maxBottom, right: false, left: false });
         }
@@ -808,6 +774,10 @@ exports.default = {
       this.allowBodyScroll = !shouldScroll;
       if (shouldScroll) {
         this.left = next, this.hMovement = next / elementSize.scrollAreaWidth * 100;
+
+        if (this.onScroll) {
+          this.onScroll({ top: this.top, left: this.left });
+        }
 
         if (this.onMaxScroll && (maxRight || maxLeft)) {
           this.onMaxScroll({ right: maxRight, left: maxLeft, top: false, bottom: false });
@@ -882,13 +852,67 @@ exports.default = {
 };
 
 /***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue__);
+/* harmony namespace reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue__) if(["default","default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_5ace9a23_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_vue_scrollbar_vue__ = __webpack_require__(9);
+var disposed = false
+var normalizeComponent = __webpack_require__(0)
+/* script */
+
+
+/* template */
+
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vue_scrollbar_vue___default.a,
+  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_5ace9a23_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_vue_scrollbar_vue__["a" /* default */],
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "src/js/components/vue-scrollbar.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-5ace9a23", Component.options)
+  } else {
+    hotAPI.reload("data-v-5ace9a23", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+/* harmony default export */ __webpack_exports__["default"] = (Component.exports);
+
+
+/***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _vueScrollbar = __webpack_require__(1);
+var _vueScrollbar = __webpack_require__(4);
 
 var _vueScrollbar2 = _interopRequireDefault(_vueScrollbar);
 
@@ -902,15 +926,19 @@ module.exports = _vueScrollbar2.default;
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_03d7e587_hasScoped_false_node_modules_vue_loader_lib_selector_type_template_index_0_horizontal_scrollbar_vue__ = __webpack_require__(8);
+/* harmony namespace reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue__) if(["default","default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_313345e9_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_horizontal_scrollbar_vue__ = __webpack_require__(8);
 var disposed = false
 var normalizeComponent = __webpack_require__(0)
 /* script */
 
+
 /* template */
 
+/* template functional */
+var __vue_template_functional__ = false
 /* styles */
 var __vue_styles__ = null
 /* scopeId */
@@ -919,14 +947,13 @@ var __vue_scopeId__ = null
 var __vue_module_identifier__ = null
 var Component = normalizeComponent(
   __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_horizontal_scrollbar_vue___default.a,
-  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_03d7e587_hasScoped_false_node_modules_vue_loader_lib_selector_type_template_index_0_horizontal_scrollbar_vue__["a" /* default */],
+  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_313345e9_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_horizontal_scrollbar_vue__["a" /* default */],
+  __vue_template_functional__,
   __vue_styles__,
   __vue_scopeId__,
   __vue_module_identifier__
 )
 Component.options.__file = "src/js/components/horizontal-scrollbar.vue"
-if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key.substr(0, 2) !== "__"})) {console.error("named exports are not supported in *.vue files.")}
-if (Component.options.functional) {console.error("[vue-loader] horizontal-scrollbar.vue: functional components are not supported with templates, they should use render functions.")}
 
 /* hot reload */
 if (false) {(function () {
@@ -935,9 +962,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-03d7e587", Component.options)
+    hotAPI.createRecord("data-v-313345e9", Component.options)
   } else {
-    hotAPI.reload("data-v-03d7e587", Component.options)
+    hotAPI.reload("data-v-313345e9", Component.options)
   }
   module.hot.dispose(function (data) {
     disposed = true
@@ -953,15 +980,19 @@ if (false) {(function () {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_9fd7644e_hasScoped_false_node_modules_vue_loader_lib_selector_type_template_index_0_vertical_scrollbar_vue__ = __webpack_require__(10);
+/* harmony namespace reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue__) if(["default","default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_74305ebb_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_vertical_scrollbar_vue__ = __webpack_require__(10);
 var disposed = false
 var normalizeComponent = __webpack_require__(0)
 /* script */
 
+
 /* template */
 
+/* template functional */
+var __vue_template_functional__ = false
 /* styles */
 var __vue_styles__ = null
 /* scopeId */
@@ -970,14 +1001,13 @@ var __vue_scopeId__ = null
 var __vue_module_identifier__ = null
 var Component = normalizeComponent(
   __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_vertical_scrollbar_vue___default.a,
-  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_9fd7644e_hasScoped_false_node_modules_vue_loader_lib_selector_type_template_index_0_vertical_scrollbar_vue__["a" /* default */],
+  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_74305ebb_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_vertical_scrollbar_vue__["a" /* default */],
+  __vue_template_functional__,
   __vue_styles__,
   __vue_scopeId__,
   __vue_module_identifier__
 )
 Component.options.__file = "src/js/components/vertical-scrollbar.vue"
-if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key.substr(0, 2) !== "__"})) {console.error("named exports are not supported in *.vue files.")}
-if (Component.options.functional) {console.error("[vue-loader] vertical-scrollbar.vue: functional components are not supported with templates, they should use render functions.")}
 
 /* hot reload */
 if (false) {(function () {
@@ -986,9 +1016,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-9fd7644e", Component.options)
+    hotAPI.createRecord("data-v-74305ebb", Component.options)
   } else {
-    hotAPI.reload("data-v-9fd7644e", Component.options)
+    hotAPI.reload("data-v-74305ebb", Component.options)
   }
   module.hot.dispose(function (data) {
     disposed = true
@@ -1003,25 +1033,37 @@ if (false) {(function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('div', [(_vm.width < 100) ? _c('div', {
-    ref: "container",
-    staticClass: "vue-scrollbar__scrollbar-horizontal",
-    on: {
-      "click": _vm.jump
-    }
-  }, [_c('div', {
-    ref: "scrollbar",
-    class: 'scrollbar' + (_vm.dragging || _vm.draggingFromParent ? '' : ' vue-scrollbar-transition'),
-    style: ({
-      width: this.width + '%',
-      left: this.scrolling + '%'
-    }),
-    on: {
-      "touchstart": _vm.startDrag,
-      "mousedown": _vm.startDrag
-    }
-  })]) : _vm._e()])
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", [
+    _vm.width < 100
+      ? _c(
+          "div",
+          {
+            ref: "container",
+            staticClass: "vue-scrollbar__scrollbar-horizontal",
+            on: { click: _vm.jump }
+          },
+          [
+            _c("div", {
+              ref: "scrollbar",
+              class:
+                "scrollbar" +
+                (_vm.dragging || _vm.draggingFromParent
+                  ? ""
+                  : " vue-scrollbar-transition"),
+              style: {
+                width: this.width + "%",
+                left: this.scrolling + "%"
+              },
+              on: { touchstart: _vm.startDrag, mousedown: _vm.startDrag }
+            })
+          ]
+        )
+      : _vm._e()
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -1030,7 +1072,7 @@ var esExports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-     require("vue-hot-reload-api").rerender("data-v-03d7e587", esExports)
+    require("vue-hot-reload-api")      .rerender("data-v-313345e9", esExports)
   }
 }
 
@@ -1039,56 +1081,73 @@ if (false) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('div', {
-    ref: "scrollWrapper",
-    class: 'vue-scrollbar__wrapper' + (this.classes ? ' ' + this.classes : ''),
-    style: (this.styles),
-    on: {
-      "click": _vm.calculateSize
-    }
-  }, [_c('div', {
-    ref: "scrollArea",
-    class: 'vue-scrollbar__area' + (this.dragging ? ' ' : ' vue-scrollbar-transition'),
-    style: ({
-      marginTop: this.top * -1 + 'px',
-      marginLeft: this.left * -1 + 'px'
-    }),
-    on: {
-      "wheel": _vm.scroll,
-      "touchstart": _vm.startDrag,
-      "touchmove": _vm.onDrag,
-      "touchend": _vm.stopDrag
-    }
-  }, [_vm._t("default"), _vm._v(" "), (_vm.ready) ? _c('vertical-scrollbar', {
-    attrs: {
-      "area": {
-        height: _vm.scrollAreaHeight
-      },
-      "wrapper": {
-        height: _vm.scrollWrapperHeight
-      },
-      "scrolling": _vm.vMovement,
-      "dragging-from-parent": _vm.dragging,
-      "on-change-position": _vm.handleChangePosition,
-      "on-dragging": _vm.handleScrollbarDragging,
-      "on-stop-drag": _vm.handleScrollbarStopDrag
-    }
-  }) : _vm._e(), _vm._v(" "), (_vm.ready) ? _c('horizontal-scrollbar', {
-    attrs: {
-      "area": {
-        width: _vm.scrollAreaWidth
-      },
-      "wrapper": {
-        width: _vm.scrollWrapperWidth
-      },
-      "scrolling": _vm.hMovement,
-      "dragging-from-parent": _vm.dragging,
-      "on-change-position": _vm.handleChangePosition,
-      "on-dragging": _vm.handleScrollbarDragging,
-      "on-stop-drag": _vm.handleScrollbarStopDrag
-    }
-  }) : _vm._e()], 2)])
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "div",
+    {
+      ref: "scrollWrapper",
+      class:
+        "vue-scrollbar__wrapper" + (this.classes ? " " + this.classes : ""),
+      style: this.styles,
+      on: { click: _vm.calculateSize }
+    },
+    [
+      _c(
+        "div",
+        {
+          ref: "scrollArea",
+          class:
+            "vue-scrollbar__area" +
+            (this.dragging ? " " : " vue-scrollbar-transition"),
+          style: {
+            marginTop: this.top * -1 + "px",
+            marginLeft: this.left * -1 + "px"
+          },
+          on: {
+            wheel: _vm.scroll,
+            touchstart: _vm.startDrag,
+            touchmove: _vm.onDrag,
+            touchend: _vm.stopDrag
+          }
+        },
+        [
+          _vm._t("default"),
+          _vm._v(" "),
+          _vm.ready
+            ? _c("vertical-scrollbar", {
+                attrs: {
+                  area: { height: _vm.scrollAreaHeight },
+                  wrapper: { height: _vm.scrollWrapperHeight },
+                  scrolling: _vm.vMovement,
+                  "dragging-from-parent": _vm.dragging,
+                  "on-change-position": _vm.handleChangePosition,
+                  "on-dragging": _vm.handleScrollbarDragging,
+                  "on-stop-drag": _vm.handleScrollbarStopDrag
+                }
+              })
+            : _vm._e(),
+          _vm._v(" "),
+          _vm.ready
+            ? _c("horizontal-scrollbar", {
+                attrs: {
+                  area: { width: _vm.scrollAreaWidth },
+                  wrapper: { width: _vm.scrollWrapperWidth },
+                  scrolling: _vm.hMovement,
+                  "dragging-from-parent": _vm.dragging,
+                  "on-change-position": _vm.handleChangePosition,
+                  "on-dragging": _vm.handleScrollbarDragging,
+                  "on-stop-drag": _vm.handleScrollbarStopDrag
+                }
+              })
+            : _vm._e()
+        ],
+        2
+      )
+    ]
+  )
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -1097,7 +1156,7 @@ var esExports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-     require("vue-hot-reload-api").rerender("data-v-7ec59f76", esExports)
+    require("vue-hot-reload-api")      .rerender("data-v-5ace9a23", esExports)
   }
 }
 
@@ -1106,25 +1165,37 @@ if (false) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('div', [(_vm.height < 100) ? _c('div', {
-    ref: "container",
-    staticClass: "vue-scrollbar__scrollbar-vertical",
-    on: {
-      "click": _vm.jump
-    }
-  }, [_c('div', {
-    ref: "scrollbar",
-    class: 'scrollbar' + (_vm.dragging || _vm.draggingFromParent ? '' : ' vue-scrollbar-transition'),
-    style: ({
-      height: _vm.height + '%',
-      top: _vm.scrolling + '%'
-    }),
-    on: {
-      "touchstart": _vm.startDrag,
-      "mousedown": _vm.startDrag
-    }
-  })]) : _vm._e()])
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", [
+    _vm.height < 100
+      ? _c(
+          "div",
+          {
+            ref: "container",
+            staticClass: "vue-scrollbar__scrollbar-vertical",
+            on: { click: _vm.jump }
+          },
+          [
+            _c("div", {
+              ref: "scrollbar",
+              class:
+                "scrollbar" +
+                (_vm.dragging || _vm.draggingFromParent
+                  ? ""
+                  : " vue-scrollbar-transition"),
+              style: {
+                height: _vm.height + "%",
+                top: _vm.scrolling + "%"
+              },
+              on: { touchstart: _vm.startDrag, mousedown: _vm.startDrag }
+            })
+          ]
+        )
+      : _vm._e()
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -1133,7 +1204,7 @@ var esExports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-     require("vue-hot-reload-api").rerender("data-v-9fd7644e", esExports)
+    require("vue-hot-reload-api")      .rerender("data-v-74305ebb", esExports)
   }
 }
 
