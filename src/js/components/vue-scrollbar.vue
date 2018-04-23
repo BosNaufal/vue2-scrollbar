@@ -250,10 +250,12 @@
 
       handleScrollbarDragging(){
         this.dragging = true
+        this.$emit("dragStarted", this);
       },
 
       handleScrollbarStopDrag(){
         this.dragging = false
+        this.$emit("dragStopped", this);
       },
 
       getSize(){
