@@ -1,24 +1,27 @@
 
 <template>
-  <div>
+  <div
+    v-if="width < 100"
+    class="vue-scrollbar__scrollbar-horizontal"
+    :style="reducedWidth"
+    ref="container"
+    @click="jump">
+
     <div
-      v-if="width < 100"
-      class="vue-scrollbar__scrollbar-horizontal"
-      ref="container"
-      @click="jump">
-
-      <div
-        :class="'scrollbar' + ( dragging || draggingFromParent ? '' : ' vue-scrollbar-transition')"
-        ref="scrollbar"
-        @touchstart="startDrag"
-        @mousedown="startDrag"
-        :style="{
-          width: this.width+'%',
-          left: this.scrolling + '%'
-        }" >
-      </div>
-
+      :class="'scrollbar' + ( dragging || draggingFromParent ? '' : ' vue-scrollbar-transition')"
+      ref="scrollbar"
+      @touchstart="startDrag"
+      @mousedown="startDrag"
+      @mousemove="onDrag"
+      @touchmove="onDrag"
+      @mouseup="stopDrag"
+      @touchend="stopDrag"
+      :style="{
+        width: width+'%',
+        left: scrolling + '%'
+      }" >
     </div>
+
   </div>
 </template>
 
@@ -27,31 +30,71 @@
   export default {
 
     props: {
-      draggingFromParent: Boolean,
-      scrolling: Number,
-      wrapper: Object,
-      area: Object,
-      onChangePosition: Function,
-      onDragging: Function,
-      onStopDrag: Function,
+      draggingFromParent: {
+        type: Boolean,
+        default: false,
+      },
+      scrolling: {
+        type: Number,
+        default: 0,
+      },
+      wrapper: {
+        type: Object,
+        default: () => ({}),
+      },
+      area: {
+        type: Object,
+        default: () => ({}),
+      },
+      offset:
+      {
+        type: Number,
+        default: 0
+      },
+      onChangePosition: {
+        type: Function,
+        default: () => false,
+      },
+      onDragging: {
+        type: Function,
+        default: () => false,
+      },
+      onStopDrag: {
+        type: Function,
+        default: () => false,
+      },
     },
 
     data () {
       return  {
         width: 0,
+        height: 0,
         dragging: false,
         start: 0
       }
     },
 
-
+    computed: {
+      reducedWidth() {
+        // vue-scrollbar.vue CSS specifies 18px for the vertical bar width and 1px for the borders
+        // we shrink the width of the horizontal bar so that it does not overlap with the
+        // vertical bar and remove the right border of the horizontal bar - but only if
+        // the vertical bar is currently visible
+        return this.height < 100
+          ? { width: `calc(100% - ${18}px)`, borderRightWidth: 0 }
+          : { width: '100%' };
+      },
+    },
+  
     watch: {
       'wrapper.width' (val, old) {
-        this.calculateSize(this)
+        this.calculateSize()
+        if(this.scrolling + this.width > 100) this.onChangePosition(100, 'horizontal')
       },
 
       'area.width' (val, old) {
-        this.calculateSize(this)
+        this.calculateSize()
+        if(this.scrolling + this.width > 100) this.onChangePosition(100, 'horizontal')
       }
     },
 
@@ -83,14 +126,14 @@
 
           e = e.changedTouches ? e.changedTouches[0] : e
 
-          let xMovement = e.clientX - this.start
-          let xMovementPercentage = xMovement / this.wrapper.width * 100;
+          const xMovement = e.clientX - this.start
+          const xMovementPercentage = xMovement / this.wrapper.width * 100;
 
           // Update the last e.clientX
           this.start = e.clientX
 
           // The next Horizontal Value will be
-          let next = this.scrolling + xMovementPercentage
+          const next = this.scrolling + xMovementPercentage
 
           // Tell the parent to change the position
           this.onChangePosition(next, 'horizontal')
@@ -109,23 +152,23 @@
 
       jump(e){
 
-        let isContainer = e.target === this.$refs.container
+        const isContainer = e.target === this.$refs.container
 
         if(isContainer){
 
           // Get the Element Position
-          let position = this.$refs.scrollbar.getBoundingClientRect()
+          const position = this.$refs.scrollbar.getBoundingClientRect()
 
           // Calculate the horizontal Movement
-          let xMovement = e.clientX - position.left
-          let centerize = (this.width / 2)
-          let xMovementPercentage = xMovement / this.wrapper.width * 100 - centerize
+          const xMovement = e.clientX - position.left
+          const centerize = (this.width / 2)
+          const xMovementPercentage = xMovement / this.wrapper.width * 100 - centerize
 
           // Update the last e.clientX
           this.start = e.clientX
 
           // The next Horizontal Value will be
-          let next = this.scrolling + xMovementPercentage
+          const next = this.scrolling + xMovementPercentage
 
           // Tell the parent to change the position
           this.onChangePosition(next, 'horizontal')
@@ -133,30 +176,17 @@
         }
       },
 
-      calculateSize(source){
+      calculateSize(){
         // Scrollbar Width
-        this.width = source.wrapper.width / source.area.width * 100
+        this.width = this.wrapper.width / this.area.width * 100
+        this.height = (this.wrapper.height / this.area.height) * 100;
       },
 
     },
 
     mounted () {
-      this.calculateSize(this)
-
-      // Put the Listener
-      document.addEventListener("mousemove", this.onDrag)
-      document.addEventListener("touchmove", this.onDrag)
-      document.addEventListener("mouseup", this.stopDrag)
-      document.addEventListener("touchend", this.stopDrag)
+      this.calculateSize()
     },
-
-    beforeDestroy () {
-      // Remove the Listener
-      document.removeEventListener("mousemove", this.onDrag)
-      document.removeEventListener("touchmove", this.onDrag)
-      document.removeEventListener("mouseup", this.stopDrag)
-      document.removeEventListener("touchend", this.stopDrag)
-    }
 
   }
 
