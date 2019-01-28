@@ -1,6 +1,7 @@
 
 <template>
   <div
+    id="vue-scrollbar__wrapper"
     @click="calculateSize"
     :class="'vue-scrollbar__wrapper' + ( this.classes ? ' ' + this.classes : '' )"
     ref="scrollWrapper"

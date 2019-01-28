@@ -2,6 +2,7 @@
 <template>
   <div>
     <div
+      id="vue-scrollbar__scrollbar-horizontal"
       v-if="width < 100"
       class="vue-scrollbar__scrollbar-horizontal"
       ref="container"
