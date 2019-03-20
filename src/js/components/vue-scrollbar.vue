@@ -64,6 +64,7 @@
         default: 53
       },
       onMaxScroll: Function,
+      onScroll: Function
     },
 
     components: {
@@ -116,6 +117,10 @@
 
           // Horizontal Scrolling
           if(shifted && canScrollX) this.normalizeHorizontal(nextX)
+          
+          if(this.onScroll) {
+            this.onScroll(nextX, nextY);
+          }
         })
 
         // prevent Default only if scrolled content is not at the top/bottom
