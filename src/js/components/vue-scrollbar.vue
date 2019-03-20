@@ -63,8 +63,7 @@
         type: Number,
         default: 53
       },
-      onMaxScroll: Function,
-      onScroll: Function
+      onMaxScroll: Function
     },
 
     components: {
@@ -118,8 +117,9 @@
           // Horizontal Scrolling
           if(shifted && canScrollX) this.normalizeHorizontal(nextX)
           
-          if(this.onScroll) {
-            this.onScroll(nextX, nextY);
+          
+          if(this.$listeners['onScroll']) {
+            this.$listeners['onScroll'](nextX, nextY);
           }
         })
 
