@@ -256,22 +256,24 @@
         this.dragging = false
       },
 
-      getSize(){
+      getSize: function getSize () {
         // The Elements
-        let $scrollArea = this.$refs.scrollArea
-        let $scrollWrapper = this.$refs.scrollWrapper
+        var $scrollArea = this.$refs.scrollArea;
+        var $scrollWrapper = this.$refs.scrollWrapper;
 
+        var $height = $scrollArea.children[0] ? $scrollArea.children[0].clientHeight : 0;
+        var $width = $scrollArea.children[0] ? $scrollArea.children[0].clientWidth : 0;
         // Get new Elements Size
-        let elementSize = {
+        var elementSize = {
           // Scroll Area Height and Width
-          scrollAreaHeight: $scrollArea.children[0].clientHeight,
-          scrollAreaWidth: $scrollArea.children[0].clientWidth,
+          scrollAreaHeight: $height,
+          scrollAreaWidth: $width,
 
           // Scroll Wrapper Height and Width
           scrollWrapperHeight: $scrollWrapper.clientHeight,
-          scrollWrapperWidth: $scrollWrapper.clientWidth,
-        }
-        return elementSize
+          scrollWrapperWidth: $scrollWrapper.clientWidth
+        };
+        return elementSize;
       },
 
       calculateSize(cb){
